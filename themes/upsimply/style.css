@@ -1,0 +1,16 @@
+/*
+Theme Name: upsimply
+Description: The site's own block theme. Lives in the site's version history beside its code snippets, styled with Tailwind on top of the tokens in theme.json.
+Version: 1.0.0
+Requires at least: 6.7
+Requires PHP: 8.1
+Tested up to: 6.9
+Text Domain: upsimply
+Update URI: false
+License: GPL-2.0-or-later
+*/
+
+/*
+ * Nothing goes here. The stylesheet the site loads is build/app.css, compiled
+ * from src/app.css; this file only carries the header WordPress reads.
+ */

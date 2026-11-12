@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "tailwindcss -i themes/upsimply/src/app.css -o themes/upsimply/build/app.css --minify",
+    "dev": "tailwindcss -i themes/upsimply/src/app.css -o themes/upsimply/build/app.css --watch"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "4.3.5"
+  }
+}

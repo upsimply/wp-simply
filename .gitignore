@@ -1,0 +1,5 @@
+# Built on the server after every change; never committed.
+/themes/*/build/
+node_modules/
+.DS_Store
+*.log
