@@ -49,6 +49,23 @@ jobs:
           sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256"
           echo "ARCHIVE=${name}.tar.gz" >> "$GITHUB_ENV"
 
+      # The manifest the theme's updater reads (themes/upsimply/inc/updater.php),
+      # in the shape WordPress.org gives a theme update. Published on every
+      # release, so .../releases/latest/download/update.json always names the
+      # newest one. It carries no package: WordPress announces the update and
+      # the hosting panel applies it.
+      - name: Write the update manifest
+        run: |
+          header() { sed -n "s/^$1:[[:space:]]*//p" themes/upsimply/style.css | tr -d '\r'; }
+          jq -n \
+            --arg version "${GITHUB_REF_NAME#v}" \
+            --arg url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/releases/tag/${GITHUB_REF_NAME}" \
+            --arg requires "$(header 'Requires at least')" \
+            --arg requires_php "$(header 'Requires PHP')" \
+            '{theme: "upsimply", new_version: $version, url: $url, package: "", requires: $requires, requires_php: $requires_php}' \
+            > update.json
+          cat update.json
+
       - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ env.ARCHIVE }}
@@ -56,8 +73,17 @@ jobs:
       - name: Publish the release
         env:
           GH_TOKEN: ${{ github.token }}
+        # A release drafted in GitHub's interface creates the tag, which is what
+        # runs this, so the release may already be there: it is given the
+        # assets then. An asset already on it is never replaced (no
+        # --clobber): the panel records a release's checksum once, and a
+        # tarball swapped afterwards is one it refuses.
         run: |
-          gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$ARCHIVE.sha256" \
-            --verify-tag \
-            --title "$GITHUB_REF_NAME" \
-            --generate-notes
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" "$ARCHIVE" "$ARCHIVE.sha256" update.json
+          else
+            gh release create "$GITHUB_REF_NAME" "$ARCHIVE" "$ARCHIVE.sha256" update.json \
+              --verify-tag \
+              --title "$GITHUB_REF_NAME" \
+              --generate-notes
+          fi

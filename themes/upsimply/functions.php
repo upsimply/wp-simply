@@ -13,6 +13,8 @@ declare(strict_types=1);
 
 defined('ABSPATH') || exit;
 
+require_once __DIR__.'/inc/updater.php';
+
 /**
  * Get the URL and version of the compiled stylesheet, or null before the
  * first build. The version is the file's modification time, so a rebuild is
