@@ -1,0 +1,56 @@
+# What every revision of the theme has to pass before it can reach a site:
+# the stylesheet compiles with the exact Tailwind CLI the panel builds it with
+# in the site's container, theme.json parses, and the theme's version is one
+# the panel can read.
+#
+# Reused by ci.yml on every push and pull request, and by release.yml before
+# anything is published.
+name: Checks
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  # Keep in step with App\Hosting\TailwindRuntime in the panel: a stylesheet
+  # that builds here must build the same way on a site.
+  TAILWIND_VERSION: v4.3.5
+  TAILWIND_SHA256: e47695cee3f0d90623a91f3939b08bdee610eb5ad99340adff9d4145b284d6cc
+
+jobs:
+  checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Read the theme's version
+        run: |
+          version="$(sed -n 's/^Version:[[:space:]]*//p' themes/upsimply/style.css | tr -d '\r')"
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error file=themes/upsimply/style.css::The Version header must be MAJOR.MINOR.PATCH, found '$version'."
+            exit 1
+          fi
+          echo "Theme version $version"
+
+      - name: Parse theme.json
+        run: jq empty themes/upsimply/theme.json
+
+      - name: Keep the built stylesheet out of the repository
+        run: |
+          if git ls-files --error-unmatch 'themes/*/build/*' >/dev/null 2>&1; then
+            echo "::error::themes/*/build/ is built on the site and must not be committed."
+            exit 1
+          fi
+
+      - name: Build the stylesheet with the panel's Tailwind CLI
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/tailwindcss" "https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64"
+          echo "${TAILWIND_SHA256}  $RUNNER_TEMP/tailwindcss" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/tailwindcss"
+          for source in themes/*/src/app.css; do
+            "$RUNNER_TEMP/tailwindcss" -i "$source" -o "$RUNNER_TEMP/$(basename "$(dirname "$(dirname "$source")")").css" --minify
+          done
