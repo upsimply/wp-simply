@@ -17,10 +17,8 @@
  * hosting panel applies it instead, as a reviewed change that keeps the
  * site's edits.
  *
- * The manifest is published with every release of the theme. A site the
- * upsimply panel manages is pointed at the panel's copy instead, through the
- * `upsimply_theme_update_url` filter, which only lists releases the panel has
- * approved.
+ * The manifest is published with every release of the theme, and the
+ * `upsimply_theme_update_url` filter can point the theme at another copy.
  */
 
 declare(strict_types=1);
