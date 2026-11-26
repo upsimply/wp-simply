@@ -1,7 +1,7 @@
 # What every revision of the theme has to pass before it can reach a site:
 # the stylesheet compiles with the exact Tailwind CLI the panel builds it with
-# in the site's container, theme.json parses, and the theme's version is one
-# the panel can read.
+# in the site's container, every PHP file parses, theme.json parses, the theme
+# is still a classic one, and its version is one the panel can read.
 #
 # Reused by ci.yml on every push and pull request, and by release.yml before
 # anything is published.
@@ -38,6 +38,21 @@ jobs:
 
       - name: Parse theme.json
         run: jq empty themes/upsimply/theme.json
+
+      # The theme is edited as code and has no Site Editor: a templates/ or
+      # parts/ directory of block HTML would make WordPress treat it as a
+      # block theme again.
+      - name: Stay a classic theme
+        run: |
+          if ls themes/*/templates/*.html themes/*/parts/*.html >/dev/null 2>&1; then
+            echo "::error::Block templates found. The theme's pages are PHP templates."
+            exit 1
+          fi
+
+      # A theme file that does not parse takes the whole site down.
+      - name: Lint the PHP
+        run: |
+          find themes snippets -name '*.php' -print0 | xargs -0 -r -n1 php -l
 
       - name: Keep the built stylesheet out of the repository
         run: |

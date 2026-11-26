@@ -1,7 +1,7 @@
 /*
 Theme Name: upsimply
-Description: The site's own block theme. Lives in the site's version history beside its code snippets, styled with Tailwind on top of the tokens in theme.json.
-Version: 1.1.0
+Description: The site's own theme, built and changed with the AI site builder. Plain PHP templates styled with Tailwind on top of the tokens in theme.json, with Alpine.js for behaviour. Lives in the site's version history beside its code snippets.
+Version: 2.0.0
 Requires at least: 6.7
 Requires PHP: 8.1
 Tested up to: 6.9

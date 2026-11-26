@@ -7,8 +7,9 @@
 # like GitHub's own (one top-level directory), its SHA-256, and a build
 # provenance attestation tying the tarball to this workflow and commit.
 #
-# Publishing does not reach any site. The panel lists the release for staff to
-# approve, and only an approved release is installed or offered as an update.
+# Publishing reaches sites: the panel reads the newest release from GitHub,
+# checks its tarball against the published checksum, installs it on new sites
+# and offers it to the others as a reviewed update.
 name: Release
 
 on:

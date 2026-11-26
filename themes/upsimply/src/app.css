@@ -1,33 +1,36 @@
 /*
- * The theme's Tailwind entry point, compiled to build/app.css.
+ * The theme's Tailwind entry point, compiled to build/app.css on the server
+ * after every change. Never edit build/app.css: write utilities in the PHP
+ * templates, and change colours, fonts and sizes in theme.json.
  *
- * theme.json is the one source of the design: its palette, fonts and font
- * sizes are what the editor offers, what global styles change and what blocks
- * store. The utilities below read the same CSS variables WordPress prints for
- * them, so `bg-primary` and a block set to Primary are always the same colour,
- * and a change made in the Site Editor reaches both without a rebuild.
+ * theme.json is the one source of the design. WordPress prints its palette,
+ * fonts and sizes as CSS variables, and the utilities below read those same
+ * variables, so `bg-primary` on a template and Primary picked for a block in
+ * a post's content are always the same colour.
  *
  * Tailwind's own colours and type scale are cleared on purpose: a utility
  * outside the theme's tokens would ignore every change to them.
  *
- * Preflight is left out. WordPress and WooCommerce bring their own base styles,
- * and a reset underneath them breaks forms and blocks. The utilities are not
- * put in a cascade layer either: WordPress's styles are unlayered, and an
- * unlayered rule beats a layered one whatever its specificity.
+ * Preflight is in a cascade layer, and the utilities are not. WordPress and
+ * WooCommerce bring unlayered styles of their own, which beat anything layered
+ * whatever its specificity: so their cart, checkout and forms keep the look
+ * they were built with on top of the reset, while a utility written in a
+ * template still wins over both.
  *
- * Only these files are scanned for classes. A class written into a page in the
- * editor is stored in the database, where no build sees it -- content uses the
- * theme's presets; utilities belong in templates, parts, patterns and PHP.
+ * Only the theme's own files and the site's snippets are scanned for classes.
+ * A class typed into a post in the editor is stored in the database, where no
+ * build sees it: content uses the theme's presets, utilities belong in PHP.
  */
 
 @import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
 @import "tailwindcss/utilities.css" source(none);
 
-@source "../templates";
-@source "../parts";
-@source "../patterns";
+@source "../*.php";
+@source "../template-parts";
+@source "../page-templates";
 @source "../inc";
-@source "../functions.php";
+@source "../assets/js/app.js";
 @source "../../../snippets";
 
 @theme inline {
@@ -41,6 +44,8 @@
 	--color-primary-contrast: var(--wp--preset--color--primary-contrast);
 	--color-secondary: var(--wp--preset--color--secondary);
 	--color-accent: var(--wp--preset--color--accent);
+	--color-white: #fff;
+	--color-black: #000;
 	--color-transparent: transparent;
 	--color-current: currentColor;
 
@@ -60,4 +65,74 @@
 	--radius-sm: var(--wp--custom--radius--small);
 	--radius-md: var(--wp--custom--radius--medium);
 	--radius-lg: var(--wp--custom--radius--large);
+}
+
+/* Alpine hides these until it has started. */
+[x-cloak] {
+	display: none !important;
+}
+
+/*
+ * A post's or a page's own content, written in the block editor. Preflight
+ * takes every margin away, so the rhythm of running text is put back here,
+ * for whatever the editor produces, from the theme's tokens. The blocks'
+ * own styles (columns, buttons, galleries) come from WordPress.
+ */
+@layer components {
+	.entry-content > * + * {
+		margin-top: var(--wp--preset--spacing--30);
+	}
+
+	.entry-content :where(h2, h3, h4) {
+		margin-top: var(--wp--preset--spacing--50);
+	}
+
+	.entry-content :where(ul, ol) {
+		padding-left: 1.5rem;
+	}
+
+	.entry-content ul {
+		list-style: disc;
+	}
+
+	.entry-content ol {
+		list-style: decimal;
+	}
+
+	.entry-content :where(li + li) {
+		margin-top: 0.25rem;
+	}
+
+	.entry-content a:where(:not(.wp-element-button)) {
+		color: var(--wp--preset--color--primary);
+		text-decoration: underline;
+		text-underline-offset: 0.15em;
+	}
+
+	.entry-content blockquote {
+		border-left: 3px solid var(--wp--preset--color--line);
+		padding-left: var(--wp--preset--spacing--40);
+		color: var(--wp--preset--color--muted);
+	}
+
+	.entry-content :where(img, video) {
+		border-radius: var(--wp--custom--radius--small);
+	}
+
+	.entry-content :where(figcaption) {
+		margin-top: 0.5rem;
+		font-size: var(--wp--preset--font-size--small);
+		color: var(--wp--preset--color--muted);
+	}
+
+	.entry-content :where(table) {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	.entry-content :where(th, td) {
+		border-bottom: 1px solid var(--wp--preset--color--line);
+		padding: 0.5rem 0.75rem;
+		text-align: left;
+	}
 }
